@@ -1,7 +1,8 @@
+include <constants.scad>
+use <common.scad>
 use <cycloidalGear.scad>
 use <sla.scad>
-
-$fn=120;
+use <stepper.scad>
 
 n_inner_lobes = 10;
 lobe_diff = 1;
@@ -21,40 +22,18 @@ square_side = 10;
 alpha =  2*360*$t;
 
 
-module ring(r1, r2, h) {
-    difference() {
-        cylinder(r=r1,h=h);
-        translate([0,0,-0.01])
-        cylinder(r=r2,h=h+0.02);
-    }
-}
-
-
-//  ==============
-
-// This part displays the REDUCTION RATIO ======
-//
-echo(str(n_inner_lobes/lobe_diff, " turns on the input equals 1 turn on the output."));
-
-// This part places the INSIDE ROTOR ==========
-//
-
-
+// ===== 3.stl =====
 // translate([lobe_diff*r_gen*cos(alpha), lobe_diff* r_gen*sin(alpha), 4])
 // rotate([0,0,-lobe_diff*alpha/n_inner_lobes])
 // color([0.5, 0.3, 0.5])
 // inside_rotor(n_inner_lobes-1, 
 // 				r_gen,
-// 				r_offset-0.1,
+// 				r_offset-0.3,
 // 				r_holes,
 // 				n_holes,
 // 				r_hole_center,
 // 				r_rotor_shaft,
-// 				5.01);
-
-
-// // This part places the OUTSIDE ROTOR =========
-
+// 				5+$eps);
 
 // SLA_Shrink_Bottom()
 // translate([lobe_diff*r_gen*cos(alpha), lobe_diff* r_gen*sin(alpha), 0])
@@ -63,7 +42,7 @@ echo(str(n_inner_lobes/lobe_diff, " turns on the input equals 1 turn on the outp
 // inside_rotor(
 //     n_inner_lobes, 
 //     r_gen,
-//     r_offset-0.1,
+//     r_offset-0.3,
 //     r_holes,
 //     n_holes,
 //     r_hole_center,
@@ -104,14 +83,29 @@ echo(str(n_inner_lobes/lobe_diff, " turns on the input equals 1 turn on the outp
 
 
 // ===== 4.stl =====
-// SLA_Shrink_Bottom()
-// difference() {
-//     rotate([0,0,alpha])
-//     eccentric(4, lobe_diff*r_gen, r_rotor_shaft_inner, 2.5);
+module axis() {
+    translate([0,0,0])
+    difference() {
+        union(){
 
-//     translate([0,0,-0.01])
-//     cylinder(r=5.1, h=4.02, $fn=4);
-// }
+            translate([lobe_diff*r_gen, 0, 5])
+		    cylinder(r=10, h=8);
+
+            translate([0,0,5])
+            cylinder(r=8, h=15);
+
+            translate([0,0,4])
+            cylinder(r=12.5, h=1);
+
+            translate([0,0,0])
+            cylinder(r=10, h=4);
+        }
+        // translate([0,0,-0+$eps])
+        // cylinder(r=5.1, h=4+$eps2, $fn=4);
+        translate([0,0,-50])
+        cylinder_outer(r=6, h=100);
+    }
+}
 
 // ===== 5.stl =====
 // SLA_Shrink_Bottom() {
@@ -123,34 +117,44 @@ echo(str(n_inner_lobes/lobe_diff, " turns on the input equals 1 turn on the outp
 
 // color([0.3,0.3,0.3])
 // translate([0,0,5])
-// ring(65/2, 50/2, 7.01);
+// ring(65/2, 50/2, 7+$eps);
 
-// ===== 1.stl =====
-// SLA_Shrink_Bottom()
-// translate([0,0,1]) {
-//     ring(65/2+2,65/2, 12);
 
-//     outside_rotor(
-//         n_inner_lobes + lobe_diff, 
-//         r_gen,
-//         r_offset,
-//         r_bolts,
-//         driven_shaft_od,
-//         4,
-//         2
-//     );
+module static_box() {
+    color([0.5,0.75,1])
+    translate([0,0,0]) {
+        // ring(65/2+2,65/2+$gap_tight, 12);
 
-//     for (i = [0:n_inner_lobes+1] ) {
-//         rotate([0, 0, 360/(n_inner_lobes+1)*i]) {
-//             translate([27-1,-1,0])
-//             cube(size=[65/2+1-27+1, 2, 4]);
+        // outside_rotor(
+        //     n_inner_lobes + lobe_diff, 
+        //     r_gen,
+        //     r_offset,
+        //     r_bolts,
+        //     driven_shaft_od,
+        //     4,
+        //     2
+        // );
 
-//             translate([27+1,-1,0])
-//             cube(size=[65/2-27, 2, 5]);
-//         }
-//     }
+        // for (i = [0:n_inner_lobes+1] ) {
+        //     rotate([0, 0, 360/(n_inner_lobes+1)*i]) {
+        //         translate([27-1,-1,0])
+        //         cube(size=[65/2+1-27+1, 2, 4]);
 
-//     color([128/255, 128/255, 255/255])
-//     translate([0,0,-1])
-//     ring(65/2+2, 2.6, 1);
-// }
+        //         translate([27+1,-1,0])
+        //         cube(size=[65/2-27, 2, 5]);
+        //     }
+        // }
+
+        // color([128/255, 128/255, 255/255])
+        ring(65/2+2, 25/2, 1);
+
+        ring(25/2+2, 25/2, 4);
+    }
+}
+
+SLA_Shrink_Bottom()
+static_box();
+
+axis();
+
+// stepper();
