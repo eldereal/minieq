@@ -1,160 +1,97 @@
 include <constants.scad>
+include <BOSL2/std.scad>
+
 use <common.scad>
 use <cycloidalGear.scad>
 use <sla.scad>
 use <stepper.scad>
+use <bearing.scad>
+use <motor10.scad>
+use <gear.scad>
 
-n_inner_lobes = 10;
-lobe_diff = 1;
-thickness = 4;
-r_gen = 2;
-r_offset = 3;
-r_pins = 5;
-r_holes = r_pins + lobe_diff*r_gen;
-n_holes = 4;
-r_hole_center = 10;
-r_rotor_shaft = 25/2;
-r_rotor_shaft_inner = 20/2;
-r_bolts = 2;
-driven_shaft_od = 50;
-r_drive_shaft = 4;
-square_side = 10;
-alpha =  2*360*$t;
+//厚度
+t = 2 - $gap_tight;
+//外径
+r = 65/2 + t;
+//底边距离斜劈的高度
+h_bottom = 10;
 
+// ring(35/2, 20/2, 10);
+// rotate([0, -45, 0])
+// rotate([0, 0, 40])//旋转
+// rotate([0, 45, 0])//旋转轴对齐Z轴
+// translate([0,0,20+25])//中心对到原点
+// rotate([0,180,0])//上下翻转
+// difference(){
+//     ring(r=50/2, t=25, h=50+20);
 
-// ===== 3.stl =====
-// translate([lobe_diff*r_gen*cos(alpha), lobe_diff* r_gen*sin(alpha), 4])
-// rotate([0,0,-lobe_diff*alpha/n_inner_lobes])
-// color([0.5, 0.3, 0.5])
-// inside_rotor(n_inner_lobes-1, 
-// 				r_gen,
-// 				r_offset-0.3,
-// 				r_holes,
-// 				n_holes,
-// 				r_hole_center,
-// 				r_rotor_shaft,
-// 				5+$eps);
-
-// SLA_Shrink_Bottom()
-// translate([lobe_diff*r_gen*cos(alpha), lobe_diff* r_gen*sin(alpha), 0])
-// rotate([0,0,-lobe_diff*alpha/n_inner_lobes])
-// color([0.5, 0.5, 0.3])
-// inside_rotor(
-//     n_inner_lobes, 
-//     r_gen,
-//     r_offset-0.3,
-//     r_holes,
-//     n_holes,
-//     r_hole_center,
-//     r_rotor_shaft,
-//     4
-// );
-
-
-// color([1, 0, 1])
-// translate([0, 0, 10])
-// rotate([180, 0, 0])
-// // ===== 2.stl =====
-// SLA_Shrink_Bottom()
-// translate([0, 0, 5.9])
-// rotate([180, 0, 0])
-// {
-//     outside_rotor(
-//         n_inner_lobes + lobe_diff - 1, 
-//         r_gen,
-//         r_offset,
-//         r_bolts,
-//         driven_shaft_od,
-//         5.9,
-//         2
-//     );
-//     ring(26, 25, 0.9);
-
-//     translate([0,0,4.9]) {
-//         ring(4.6, 2.6, 1);
-
-//         for (i = [0:n_inner_lobes] ) {
-//             rotate([0, 0, 360/n_inner_lobes*(i+0.5)])
-//             translate([3.6, -1, 0])
-//             cube(size=[23-3.6, 2, 1]);
-//         }
-//     }
+//     translate([-50/2, 0, 20])
+//     rotate([0, -45, 0])
+//     translate([0, -25, 0])
+//     cube([50*1.5, 50*1.01, 50*1.5]);
 // }
 
+//外壳
+module bottom_shell(r, t, h_bottom) {
+    color([0.5, 0.5, 0.75])
+    // translate([0,0,-20-25])
+    difference(){
+        ring(r=r, t=t, h=r*2 + h_bottom);
 
-// ===== 4.stl =====
-module axis() {
-    translate([0,0,0])
-    difference() {
-        union(){
+        translate([-r, 0, h_bottom])
+        rotate([0, -45, 0])
+        translate([0, -r*1.01, 0])
+        cube([r*3, r*2.02, r*3]);
+    }
 
-            translate([lobe_diff*r_gen, 0, 5])
-		    cylinder(r=10, h=8);
+    color([0.5, 0.5, 0.75])
+    translate([0,0,-2])
+    ring(r=r, t=5, h=2);
+}
 
-            translate([0,0,5])
-            cylinder(r=8, h=15);
+// bottom_shell(r = r, t = t, h_bottom = h_bottom);
 
-            translate([0,0,4])
-            cylinder(r=12.5, h=1);
 
-            translate([0,0,0])
-            cylinder(r=10, h=4);
+color([0.5,0.75,0.5])
+difference(){
+    union(){
+        
+        difference(){
+            union(){
+                ring(r=10, t=5, h=7);
+                
+                translate([0,0,-2])
+                ring(r=27, t=22, h=2);
+            }
+            translate([0,0,-1])
+            cylinder(r=(13.5/2+$gap_tight)/cos(30), h=10, $fn=6);
         }
-        // translate([0,0,-0+$eps])
-        // cylinder(r=5.1, h=4+$eps2, $fn=4);
-        translate([0,0,-50])
-        cylinder_outer(r=6, h=100);
+
+        ring_gear(modul=1, tooth_number=43, width=7, rim_width=2.5-$gap_tight);
     }
+
+    #cylinder(r=0.8, h=20);
 }
 
-// ===== 5.stl =====
-// SLA_Shrink_Bottom() {
-//     cylinder(r=5,h=1.9,$fn=4);
-//     cylinder(r=2.5, h=12);
-// }
+translate([(45-12)/2,0,0])
+spur_gear(modul=1, tooth_number=10, width=8, bore=3);
 
+//轴承
+// translate([0,0,$gap_loose])
+// bearing65();
 
-
-// color([0.3,0.3,0.3])
-// translate([0,0,5])
-// ring(65/2, 50/2, 7+$eps);
-
-
-module static_box() {
-    color([0.5,0.75,1])
-    translate([0,0,0]) {
-        // ring(65/2+2,65/2+$gap_tight, 12);
-
-        // outside_rotor(
-        //     n_inner_lobes + lobe_diff, 
-        //     r_gen,
-        //     r_offset,
-        //     r_bolts,
-        //     driven_shaft_od,
-        //     4,
-        //     2
-        // );
-
-        // for (i = [0:n_inner_lobes+1] ) {
-        //     rotate([0, 0, 360/(n_inner_lobes+1)*i]) {
-        //         translate([27-1,-1,0])
-        //         cube(size=[65/2+1-27+1, 2, 4]);
-
-        //         translate([27+1,-1,0])
-        //         cube(size=[65/2-27, 2, 5]);
-        //     }
-        // }
-
-        // color([128/255, 128/255, 255/255])
-        ring(65/2+2, 25/2, 1);
-
-        ring(25/2+2, 25/2, 4);
-    }
+//8/3螺母
+translate([0, 0, -1])
+color([0.5,0.5,0.5])
+difference() {
+    cylinder(r=13.5/2/cos(30), h=8.3, $fn=6);
+    translate([0,0,-$eps])
+    cylinder(r=9.5/2, h=8.3+$eps2);
 }
 
-SLA_Shrink_Bottom()
-static_box();
+// translate([0,0,2.5+5])
+// spur_gear(pitch=2, teeth=60, thickness=5, shaft_diam=35+$gap_tight*2);
 
-axis();
-
-// stepper();
+translate([(45-12)/2, 0, 10])
+rotate([180, 0, 90])
+motor10();

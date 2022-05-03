@@ -1,4 +1,5 @@
 $fn = $preview ? 32 : 128;
+$gap_large=0.5;
 $gap_loose=0.3;
 $gap_tight=0.1;
 $eps=0.01;
